@@ -1,0 +1,39 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logging
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Databases (au cas où vous utiliseriez SQLite localement)
+*.sqlite3
+*.db
+
+# Docker
+.docker/
+
+# Alembic
+alembic/versions/__pycache__/
