@@ -1,166 +1,227 @@
-# 📅 SlotAPI — Test Technique Stagiaire Backend
+# 📅 SlotAPI — Système de Réservation de Créneaux
 
-> **Poste visé :** Stagiaire Développeur Backend  
-> **Stack attendue :** FastAPI · PostgreSQL · Redis · Docker  
-> **Soumission :** Fork ce repo → développe → envoie le lien de ton repo à [recrutement@karaba.africa]
+SlotAPI est une solution backend robuste conçue pour gérer des ressources (professionnels, salles, équipements), définir leurs disponibilités et permettre la prise de rendez-vous avec un système de notifications automatisées (webhooks).
 
----
+## 🚀 Fonctionnalités Clés
 
-## Contexte
-
-Karaba automatise des processus métier via des bots conversationnels WhatsApp. L'un des besoins fondamentaux de cette infrastructure est un **moteur de réservation de créneaux** — capable de gérer des ressources (agents, professionnels, salles), leurs disponibilités, et d'envoyer des rappels automatiques aux parties concernées.
-
-Ton mission : construire **SlotAPI**, une API REST robuste de gestion de réservations avec notifications différées.
-
----
-
-## Ce que tu vas construire
-
-### 1. Gestion des ressources
-
-```
-POST   /resources          → créer une ressource (ex: "Dr. Kofi", "Agent RH")
-GET    /resources          → lister toutes les ressources
-DELETE /resources/{id}     → supprimer une ressource
-```
-
-Une ressource a : `id`, `name`, `type` (libre : médecin, agent, salle…), `created_at`
+- **Gestion de Ressources** : Création et organisation des entités réservables.
+- **Disponibilités Flexibles** : Définition de créneaux temporels précis avec détection de chevauchements.
+- **Système de Réservation** : Processus de réservation complet avec statut de confirmation.
+- **Notifications Automatisées** : Rappels planifiés à 24h et 1h avant le rendez-vous via `ARQ` (Redis).
+- **Liste d'Attente** : Inscription automatique pour être notifié dès qu'un créneau se libère.
+- **Sécurité** : Protection des endpoints administratifs via clé API (`X-API-Key`).
 
 ---
 
-### 2. Gestion des disponibilités
+## 🛠️ Stack Technique
 
-```
-POST   /resources/{id}/availability   → définir des créneaux disponibles
-GET    /resources/{id}/availability   → voir les créneaux disponibles (non réservés)
-```
-
-Un créneau a : `start_time`, `end_time`, `is_booked` (bool)
-
-**Règles métier obligatoires :**
-- Deux créneaux d'une même ressource ne peuvent pas se chevaucher
-- Un créneau dans le passé ne peut pas être créé
+- **Framework** : FastAPI (Asynchrone)
+- **Base de données** : PostgreSQL
+- **ORM** : SQLAlchemy + Alembic (Migrations)
+- **File d'attente** : Redis + ARQ
+- **Conteneurisation** : Docker & Docker Compose
+- **Tests** : Pytest
 
 ---
 
-### 3. Réservations
+## 📦 Installation et Lancement
 
+### 1. Configuration de l'environnement
+Copiez le fichier d'exemple et configurez vos variables :
+```bash
+cp .env.example .env
 ```
-POST   /bookings           → créer une réservation
-GET    /bookings/{id}      → détail d'une réservation
-DELETE /bookings/{id}      → annuler une réservation
-GET    /bookings           → lister (avec filtres : resource_id, date, status)
+*Note : La clé API par défaut pour le développement est `dev-secret-key`.*
+
+### 2. Lancement avec Docker (Recommandé)
+Lance l'API, la DB, Redis et le Worker en une commande :
+```bash
+docker compose up --build
 ```
+- **API** : http://localhost:8000
+- **Swagger UI** : http://localhost:8000/docs
 
-Une réservation a : `id`, `resource_id`, `slot_id`, `client_name`, `client_phone`, `status` (`confirmed` / `cancelled`), `created_at`
+### 3. Développement Local (Hors Docker)
+```bash
+# Installation des dépendances
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-**Règles métier obligatoires :**
-- On ne peut pas réserver un créneau déjà réservé
-- L'annulation est impossible moins de 1h avant le créneau (retourner une erreur métier claire)
+# Appliquer les migrations
+alembic upgrade head
 
----
+# Lancer l'API (port 8000)
+uvicorn app.main:app --reload
 
-### 4. Notifications différées (Redis + Celery ou ARQ)
-
-Lors de la création d'une réservation, planifier automatiquement :
-
-- Un rappel **24h avant** le créneau
-- Un rappel **1h avant** le créneau
-
-Ces rappels ne font pas vraiment d'envoi — ils appellent un **webhook interne** simulé :
-
-```
-POST /webhooks/notify
-{
-  "booking_id": "...",
-  "client_phone": "+228XXXXXXXX",
-  "message": "Rappel : votre rendez-vous est dans 1h avec Dr. Kofi",
-  "trigger": "1h_before"
-}
-```
-
-Cet endpoint doit logger la notification reçue et retourner `200 OK`. C'est suffisant.
-
----
-
-### 5. Statut des notifications
-
-```
-GET /bookings/{id}/notifications   → liste les notifications planifiées et leur statut (pending / sent)
+# Lancer le Worker (gestion des rappels)
+arq app.workers.tasks.WorkerSettings
 ```
 
 ---
 
-## Fonctionnalités bonus _(non obligatoires, mais appréciées)_
+## 🔑 Authentification
 
-- [ ] Auth simple par API Key (header `X-API-Key`) pour protéger les endpoints d'admin
-- [ ] Liste d'attente : si un créneau est complet, possibilité de s'inscrire et être notifié si une annulation survient
-- [ ] Pagination sur les endpoints de liste
-- [ ] Tests unitaires et d'intégration (pytest)
-- [ ] CI GitHub Actions (lint + tests)
+Tous les endpoints (sauf les webhooks et la documentation) requièrent le header suivant :
+`X-API-Key: dev-secret-key`
 
 ---
 
-## Ce qu'on évalue
+## 📖 Documentation des Endpoints
 
-| Critère | Points |
-|---|---|
-| Fonctionnalités obligatoires livrées | 30 |
-| Qualité du code Python (structure, lisibilité) | 20 |
-| Modélisation PostgreSQL (migrations Alembic) | 15 |
-| Docker Compose qui fonctionne du premier coup | 15 |
-| Gestion des erreurs (codes HTTP, messages clairs) | 10 |
-| Bonus | +10 |
+### 🏗️ Ressources
+Gestion des entités pour lesquelles on peut réserver.
 
----
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/resources/` | Créer une nouvelle ressource. |
+| `GET` | `/resources/` | Lister les ressources (Pagination: `skip`, `limit`). |
+| `DELETE` | `/resources/{id}` | Supprimer une ressource et ses données liées. |
 
-## Contraintes techniques
-
-- **FastAPI** uniquement (pas Flask, pas Django)
-- **PostgreSQL** pour la persistance — SQLAlchemy + Alembic pour les migrations
-- **Redis** pour la queue de tâches
-- **Docker Compose** obligatoire : `docker compose up` doit lancer l'ensemble (API + DB + Redis + Worker)
-- Python 3.11+
-- Pas de frontend requis
-
----
-
-## Structure de repo attendue
-
+**Exemple Création :**
+```bash
+curl -X POST http://localhost:8000/resources/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: dev-secret-key" \
+     -d '{"name": "Dr. Kofi", "type": "médecin"}'
 ```
-slotapi/
+
+---
+
+### 📅 Disponibilités (Slots)
+Définition du temps disponible pour une ressource.
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/resources/{res_id}/availability/` | Ajouter un ou plusieurs créneaux. |
+| `GET` | `/resources/{res_id}/availability` | Voir les créneaux libres futurs. |
+
+**Exemple Ajout de Slots :**
+```bash
+curl -X POST http://localhost:8000/resources/{res_id}/availability/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: dev-secret-key" \
+     -d '{
+       "slots": [
+         {"start_time": "2026-10-01T10:00:00Z", "end_time": "2026-10-01T11:00:00Z"}
+       ]
+     }'
+```
+
+---
+
+### 📝 Réservations
+Gestion des rendez-vous.
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/bookings/` | Créer une réservation (planifie auto les rappels). |
+| `GET` | `/bookings/` | Lister les réservations avec filtres (status, date, client). |
+| `GET` | `/bookings/{id}` | Détails d'une réservation. |
+| `DELETE` | `/bookings/{id}` | Annuler une réservation (impossible < 1h avant). |
+
+**Exemple Réservation :**
+```bash
+curl -X POST http://localhost:8000/bookings/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: dev-secret-key" \
+     -d '{
+       "resource_id": "UUID-RESSOURCE",
+       "slot_id": "UUID-SLOT",
+       "client_name": "Jean Dupont",
+       "client_phone": "+22890000000"
+     }'
+```
+
+---
+
+### ⏳ Liste d'attente (Bonus)
+Permet aux clients d'être notifiés si un créneau déjà complet se libère.
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/slots/{slot_id}/waitlist/` | S'inscrire pour un créneau complet. |
+| `GET` | `/slots/{slot_id}/waitlist/` | Voir la liste d'attente d'un créneau. |
+
+**Exemple Inscription :**
+```bash
+curl -X POST http://localhost:8000/slots/{slot_id}/waitlist/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: dev-secret-key" \
+     -d '{"client_name": "Alice", "client_phone": "+22891234567"}'
+```
+
+---
+
+### 🔔 Notifications & Webhooks
+
+| Méthode | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/bookings/{id}/notifications/` | Historique des rappels pour une réservation. |
+| `POST` | `/webhooks/notify` | Endpoint de réception des notifications (Simulé). |
+
+*Note : L'endpoint `/webhooks/notify` est public pour permettre la réception de requêtes externes ou internes.*
+
+---
+
+## 📮 Guide de Test avec Postman
+
+1. **Importation** :
+   - Allez dans Postman > **Import**.
+   - Entrez l'URL : `http://localhost:8000/openapi.json` (quand le serveur tourne).
+   - Postman générera automatiquement une collection avec tous les endpoints.
+
+2. **Configuration de l'Auth** :
+   - Dans votre collection, allez dans l'onglet **Headers**.
+   - Ajoutez la clé `X-API-Key`.
+   - Valeur : `dev-secret-key`.
+
+3. **Exemple de Workflow de Test** :
+   1. `POST /resources/` : Créez un médecin. Copiez l'ID.
+   2. `POST /resources/{id}/availability/` : Ajoutez un créneau pour demain. Copiez l'ID du slot.
+   3. `POST /bookings/` : Réservez ce créneau.
+   4. `GET /bookings/{id}/notifications/` : Vérifiez que les notifications "24h_before" et "1h_before" sont créées avec le statut `PENDING`.
+
+---
+
+## 🧪 Exécution des Tests
+
+Le projet utilise une base de données de test dédiée.
+```bash
+pytest -v
+```
+Les tests couvrent :
+- La création et pagination des ressources.
+- La détection des chevauchements de créneaux.
+- Les contraintes d'annulation (limite de 1h).
+- Le cycle de vie complet de la liste d'attente.
+- La sécurité des clés API.
+
+---
+
+## 📁 Structure du Projet
+
+```text
+slot-api/
+├── alembic/              # Scripts de migration DB
 ├── app/
-│   ├── api/
-│   │   ├── resources.py
-│   │   ├── bookings.py
-│   │   └── webhooks.py
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   ├── workers/
-│   └── main.py
-├── alembic/
-├── tests/
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-└── README.md
+│   ├── api/              # Routers FastAPI (Contrôleurs)
+│   ├── models/           # Modèles SQLAlchemy (Database)
+│   ├── schemas/          # Modèles Pydantic (Validation/Sérialisation)
+│   ├── services/         # Logique métier (Calculs, DB ops)
+│   ├── workers/          # Tâches de fond (Rappels via ARQ)
+│   ├── main.py           # Point d'entrée de l'application
+│   └── database.py       # Configuration SQLAlchemy
+├── tests/                # Tests d'intégration et unitaires
+├── docker-compose.yml    # Orchestration des conteneurs
+└── Dockerfile            # Image Docker de l'API
 ```
 
 ---
 
-## Comment soumettre
+## 🛡️ Gestion des Erreurs
 
-1. **Fork** ce repository
-2. Développe sur ta propre branche ou directement sur `main`
-3. Assure-toi que `docker compose up` démarre tout sans erreur
-4. Inclus dans ton README : les endpoints disponibles + comment tester avec curl ou Postman
-5. Envoie le lien de ton repo GitHub à **recrutement@karaba.africa** avec en objet : `[STAGE BACKEND] Ton Nom`
-
-> ⚠️ Un repo sans Docker Compose fonctionnel ou sans documentation des endpoints sera automatiquement écarté.
-
----
-
-## Questions ?
-
-Ouvre une **GitHub Issue** sur ce repo. On répond sous 48h.
+- `400 Bad Request` : Données invalides, créneau dans le passé ou annulation trop tardive.
+- `403 Forbidden` : Clé API manquante ou incorrecte.
+- `404 Not Found` : Ressource, slot ou réservation inexistant.
+- `409 Conflict` : Créneau déjà réservé ou chevauchement de disponibilité.
