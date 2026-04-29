@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, func
+from sqlalchemy import select, func
 from app.models.slot_model import Slot
 from app.schemas.availability_schemas import AvailabilityCreate
 from app.services.resource_service import get_resource
@@ -74,7 +74,7 @@ async def get_availability(db: AsyncSession, resource_id: str, skip: int = 0, li
     now = datetime.now(timezone.utc)
     query = select(Slot).where(
         Slot.resource_id == resource_id,
-        Slot.is_booked == False,
+        Slot.is_booked.is_(False),
         Slot.end_time > now
     )
     

@@ -9,8 +9,6 @@ from app.schemas.booking_schemas import BookingCreate, BookingFilter
 from app.services.slot_service import get_slot
 from arq.connections import ArqRedis
 from fastapi import HTTPException
-import httpx
-from app.config import settings
 from app.models.waitlist_model import Waitlist, WaitlistStatus
 
 

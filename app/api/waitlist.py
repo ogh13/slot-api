@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.dependencies import verify_api_key
 from app.schemas.waitlist_schemas import WaitlistCreate, WaitlistResponse
 from app.schemas.pagination_schemas import PaginatedResponse
 

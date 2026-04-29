@@ -1,6 +1,6 @@
 import enum
 import uuid
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Enum as SAEnum, func
+from sqlalchemy import Column, String, ForeignKey, DateTime, Enum as SAEnum, func
 from app.database import Base
 
 class WaitlistStatus(str, enum.Enum):

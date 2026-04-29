@@ -1,13 +1,12 @@
 import pytest
 import os
-import asyncio
 from httpx import AsyncClient, ASGITransport
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from app.main import app
 from app.database import Base, get_db
 from app.config import settings
 from app.dependencies import get_arq_queue
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock
 
 # Base de données de test séparée
 TEST_DATABASE_URL = os.getenv(

@@ -1,9 +1,7 @@
-from datetime import datetime
-from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.dependencies import verify_api_key, get_arq_queue
+from app.dependencies import get_arq_queue
 from app.schemas.booking_schemas import BookingCreate, BookingResponse, BookingFilter
 from app.schemas.pagination_schemas import PaginatedResponse
 from app.services.booking_service import create_booking, get_booking, cancel_booking, list_bookings

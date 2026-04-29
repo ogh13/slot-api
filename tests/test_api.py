@@ -89,7 +89,7 @@ async def test_waitlist(client):
     cancel = await client.delete(f"/bookings/{booking_id}", headers=HEADERS)
     assert cancel.status_code == 204
     # Vérifier que le waitlist entry est marquée comme notified
-    waitlist_entries = (await client.get(f"/slots/{slot_id}/waitlist/", headers=HEADERS)).json()["items"]
+    (await client.get(f"/slots/{slot_id}/waitlist/", headers=HEADERS)).json()["items"]
     # (optionnel : on peut vérifier le webhook loggé)
 
 @pytest.mark.asyncio

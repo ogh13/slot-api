@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from fastapi import HTTPException
 from app.models.slot_model import Slot
-from app.models.waitlist_model import Waitlist, WaitlistStatus
+from app.models.waitlist_model import Waitlist
 
 async def join_waitlist(db: AsyncSession, slot_id: str, client_name: str, client_phone: str) -> Waitlist:
     """

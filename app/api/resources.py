@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.dependencies import verify_api_key
 from app.schemas.resource_schemas import ResourceCreate, ResourceResponse
 from app.services.resource_service import create_resource, get_resources, delete_resource
 from app.schemas.pagination_schemas import PaginatedResponse

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
-from app.dependencies import verify_api_key
 from app.schemas.availability_schemas import AvailabilityCreate, SlotResponse
 from app.services.slot_service import add_availability, get_availability
 from app.schemas.pagination_schemas import PaginatedResponse
