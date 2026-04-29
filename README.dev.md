@@ -110,3 +110,49 @@ Pour tester les notifications sans attendre 24h :
 
 ---
 
+## 🧪 Exemples de requêtes (curl)
+
+Voici quelques exemples pour tester l'API. N'oubliez pas de remplacer `<VOTRE_CLE_API>` par la valeur définie dans votre fichier `.env`.
+
+### 1. Créer une ressource
+```bash
+curl -X POST http://localhost:8000/resources/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: <VOTRE_CLE_API>" \
+     -d '{"name": "Dr. Kofi", "type": "médecin"}'
+```
+
+### 2. Ajouter des disponibilités pour une ressource
+```bash
+# Remplacez {resource_id} par l'ID retourné lors de la création
+curl -X POST http://localhost:8000/resources/{resource_id}/availability/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: <VOTRE_CLE_API>" \
+     -d '{
+       "slots": [
+         {
+           "start_time": "2026-05-01T10:00:00Z",
+           "end_time": "2026-05-01T11:00:00Z"
+         }
+       ]
+     }'
+```
+
+### 3. Créer une réservation
+```bash
+curl -X POST http://localhost:8000/bookings/ \
+     -H "Content-Type: application/json" \
+     -H "X-API-Key: <VOTRE_CLE_API>" \
+     -d '{
+       "resource_id": "{resource_id}",
+       "slot_id": "{slot_id}",
+       "client_name": "Jean Dupont",
+       "client_phone": "+22890000000"
+     }'
+```
+
+## 📮 Utilisation avec Postman / Insomnia
+
+1. **Importation** : Vous pouvez importer la documentation Swagger directement via `http://localhost:8000/openapi.json`.
+2. **Authentification** : Dans l'onglet **Headers**, ajoutez la clé `X-API-Key` avec votre token secret.
+3. **Corps des requêtes** : Pour les `POST`, utilisez le format **Body** > **raw** > **JSON**.
