@@ -152,7 +152,7 @@ async def test_webhook_notify(client):
         "message": "test",
         "trigger": "test_trigger"
     }
-    resp = await client.post("/webhooks/notify", json=payload)  # avec headers=HEADERS si nécessaire, on teste sans pour l'instant
-    # En fait, webhooks n'a plus Depends(verify_api_key) grâce à la modif, alors on peut tester sans
+    resp = await client.post("/webhooks/notify", json=payload, headers=HEADERS)
+    # En fait, webhooks est protégé par la dépendance globale de l'app, donc on doit passer les headers
     assert resp.status_code == 200
     assert resp.json()["status"] == "ok"
